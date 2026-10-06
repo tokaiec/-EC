@@ -479,19 +479,25 @@
                 
                 tbody.innerHTML = '';
                 if (records.length === 0) {
+                    noDataMsg.classList.add('hidden'); // Fix toggle
                     noDataMsg.classList.remove('hidden');
                     return;
                 }
                 noDataMsg.classList.add('hidden');
 
                 records.slice().reverse().forEach(r => {
-                    // 日付の表示形式を綺麗に整える（タイムゾーンのズレ対策）
+                    // タイムゾーンによる1日ズレを解消するため、日付に9時間を足して日本時間として日付文字列を取得する
                     let displayDate = '';
                     if (r.date) {
                         let dateStr = r.date.toString();
-                        if (dateStr.includes('T')) {
-                            displayDate = dateStr.split('T')[0];
+                        // タイムゾーン（TやZ）が含まれている場合
+                        if (dateStr.includes('T') || dateStr.includes('Z')) {
+                            let d = new Date(dateStr);
+                            // 9時間（ミリ秒）を足して日本時間に補正
+                            d.setTime(d.getTime() + (9 * 60 * 60 * 1000));
+                            displayDate = d.toISOString().split('T')[0];
                         } else {
+                            // すでに "YYYY-MM-DD" の形になっている場合はそのまま
                             displayDate = dateStr.substring(0, 10);
                         }
                     }
