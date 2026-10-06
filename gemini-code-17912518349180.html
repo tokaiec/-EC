@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>労働者自己診断チェック（疲労蓄積度・ストレスチェック）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-y-screen p-4 md:p-8">
+
+    <header class="max-w-4xl mx-auto flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm">
+        <h1 class="text-xl font-bold text-blue-900">労働者自己診断システム</h1>
+        <div class="space-x-2">
+            <button id="navUserBtn" onclick="switchView('user')" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg shadow hover:bg-blue-700 transition">アンケート回答</button>
+            <button id="navAdminBtn" onclick="openAdminLoginModal()" class="px-4 py-2 bg-slate-700 text-white text-sm font-semibold rounded-lg shadow hover:bg-slate-800 transition">管理者画面</button>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto bg-white p-6 md:p-10 rounded-2xl shadow-md">
+        
+        <!-- ================= ユーザー用アンケート画面 ================= -->
+        <div id="userView">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-blue-900">自己診断チェック票</h2>
+                <p class="text-sm text-slate-500 mt-1">疲労蓄積度およびストレス・健康状態の診断を行います</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl mb-6 border border-slate-200">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">実施日</label>
+                    <input type="date" id="date" class="w-full p-2 border border-slate-300 rounded-md text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">所属</label>
+                    <input type="text" id="dept" placeholder="例：開発部" class="w-full p-2 border border-slate-300 rounded-md text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">氏名</label>
+                    <input type="text" id="name" placeholder="氏名を入力" class="w-full p-2 border border-slate-300 rounded-md text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">性別（ストレス判定用）</label>
+                    <select id="gender" class="w-full p-2 border border-slate-300 rounded-md text-sm bg-white">
+                        <option value="male">男性</option>
+                        <option value="female">女性</option>
+                    </select>
+                </div>
+            </div>
+
+            <form id="surveyForm" onsubmit="event.preventDefault(); submitSurvey();">
+                <section class="mb-8">
+                    <h3 class="text-lg font-bold border-b-2 border-blue-600 pb-1 mb-4 text-blue-900">1. 最近1か月間の自覚症状（疲労蓄積度診断）</h3>
+                    <div class="bg-blue-50 border-l-4 border-blue-600 p-3 text-xs text-blue-800 mb-4 rounded-r-md">
+                        最も当てはまる項目を選んでください。（1〜3番：ほとんどなかった/ときどきあったで1点、よくあるで3点）
+                    </div>
+                    <div id="fatigueQuestions" class="space-y-3"></div>
+                </section>
+
+                <section class="mb-8">
+                    <h3 class="text-lg font-bold border-b-2 border-blue-600 pb-1 mb-4 text-blue-900">2. 最近1か月間の勤務の状況</h3>
+                    <div class="bg-blue-50 border-l-4 border-blue-600 p-3 text-xs text-blue-800 mb-4 rounded-r-md">
+                        最も当てはまる項目を選んでください。
+                    </div>
+                    <div id="workQuestions" class="space-y-3"></div>
+
+                    <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl mt-4">
+                        <div class="font-medium text-sm text-slate-800 mb-2">あなたは、医師との面接、指導の受診を希望しますか？</div>
+                        <div class="flex gap-6 text-sm">
+                            <label class="cursor-pointer flex items-center gap-2"><input type="radio" name="interview" value="はい"> はい</label>
+                            <label class="cursor-pointer flex items-center gap-2"><input type="radio" name="interview" value="いいえ" checked> いいえ</label>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="mb-8">
+                    <h3 class="text-lg font-bold border-b-2 border-blue-600 pb-1 mb-4 text-blue-900">3. 自己診断チェック②（ストレス・健康状態）</h3>
+                    <div class="bg-blue-50 border-l-4 border-blue-600 p-3 text-xs text-blue-800 mb-4 rounded-r-md">
+                        最近のあなたの状態についてお答えください。（1〜3番は、ほとんどなかった/ときどきあったで1点）
+                    </div>
+                    <div id="stressQuestions" class="space-y-3"></div>
+                    
+                    <h4 class="font-bold text-md text-blue-900 mt-6 mb-3">最近の健康状態についても教えてください。</h4>
+                    <div id="healthQuestions" class="space-y-3"></div>
+                </section>
+
+                <div class="text-center pt-4">
+                    <button type="submit" class="px-8 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition transform hover:-translate-y-0.5">
+                        診断結果を送信・保存する
+                    </button>
+                </div>
+            </form>
+
+            <div id="resultBox" class="hidden mt-8 p-6 bg-emerald-50 border border-emerald-200 rounded-xl">
+                <h3 class="text-lg font-bold text-emerald-800 mb-2">診断が完了しました</h3>
+                <div id="resultContent" class="text-sm space-y-4 text-slate-700"></div>
+                <button onclick="switchView('user'); window.scrollTo({top:0, behavior:'smooth'})" class="mt-4 px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg shadow hover:bg-emerald-700 transition">
+                    新規の回答を始める
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= 管理者用画面 ================= -->
+        <div id="adminView" class="hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">管理者ダッシュボード</h2>
+                    <p class="text-sm text-slate-500">これまでに保存された回答データの一覧です</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="exportCSV()" class="px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg shadow hover:bg-emerald-700 transition">CSVダウンロード</button>
+                    <button onclick="clearData()" class="px-4 py-2 bg-rose-600 text-white text-sm font-semibold rounded-lg shadow hover:bg-rose-700 transition">データ全削除</button>
+                    <button onclick="switchView('user')" class="px-4 py-2 bg-slate-600 text-white text-sm font-semibold rounded-lg shadow hover:bg-slate-700 transition">回答画面へ戻る</button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                <table class="w-full text-left text-sm text-slate-600">
+                    <thead class="bg-slate-100 text-slate-700 uppercase text-xs">
+                        <tr>
+                            <th class="p-3">実施日</th>
+                            <th class="p-3">所属</th>
+                            <th class="p-3">氏名</th>
+                            <th class="p-3">疲労蓄積度</th>
+                            <th class="p-3">勤務状況</th>
+                            <th class="p-3">ストレス</th>
+                            <th class="p-3">健康状態</th>
+                            <th class="p-3">面接希望</th>
+                            <th class="p-3">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTableBody" class="divide-y divide-slate-200 bg-white">
+                        <!-- 動的に挿入 -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="noDataMsg" class="hidden text-center py-12 text-slate-400">データがまだありません。</div>
+        </div>
+
+    </main>
+
+    <div id="adminLoginModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-2xl shadow-xl max-w-sm w-full">
+            <h3 class="text-lg font-bold text-slate-900 mb-2">管理者ログイン</h3>
+            <p class="text-xs text-slate-500 mb-4">管理者用パスワードを入力してください
+            <input type="password" id="adminPasswordInput" placeholder="パスワード" class="w-full p-2 border border-slate-300 rounded-md text-sm mb-4">
+            <div class="flex justify-end gap-2">
+                <button onclick="closeAdminLoginModal()" class="px-4 py-2 bg-slate-200 text-slate-700 text-sm rounded-lg hover:bg-slate-300 transition">キャンセル</button>
+                <button onclick="verifyAdminPassword()" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition">ログイン</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fatigueList = [
+            "イライラする", "不安だ", "落ち着かない", "ゆううつだ", 
+            "よく眠れない", "体の調子が悪い", "物事に集中できない", "することに間違いが多い", 
+            "仕事中、強い眠気に襲われる", "やる気/出ない", "へとへとだ(運動後を除く)", 
+            "朝、起きた時、ぐったりした疲れを感じる", "以前とくらべて、疲れやすい", "食欲がないと感じる"
+        ];
+
+        const workList = [
+            { title: "1. 1か月の労働時間(時間外・休日労働含む)", opts: [["適当", 0], ["多い", 1], ["非常に多い", 3]] },
+            { title: "2. 不規則な勤務(予定変更・突然の仕事)", opts: [["少ない", 0], ["多い", 1]] },
+            { title: "3. 出張に伴う負担", opts: [["小/ない", 0], ["大きい", 1]] },
+            { title: "4. 深夜勤務に伴う負担", opts: [["小/ない", 0], ["大きい", 1], ["非常に大きい", 3]] },
+            { title: "5. 休憩・仮眠の時間数及び施設", opts: [["適切", 0], ["不適切", 1]] },
+            { title: "6. 仕事の身体的負担", opts: [["小さい", 0], ["大きい", 1], ["非常に大きい", 3]] },
+            { title: "7. 仕事の精神的負担", opts: [["小さい", 0], ["大きい", 1], ["非常に大きい", 3]] },
+            { title: "8. 人間関係による負担", opts: [["小さい", 0], ["大きい", 1], ["非常に大きい", 3]] },
+            { title: "9. 時間内に処理しきれない仕事", opts: [["少ない", 0], ["多い", 1], ["非常に多い", 3]] },
+            { title: "10. 自分のペースでできない仕事", opts: [["少ない", 0], ["多い", 1], ["非常に多い", 3]] },
+            { title: "11. 勤務外でも仕事のことが気にかかる", opts: [["ほとんどない", 0], ["時々", 1], ["よくある", 3]] },
+            { title: "12. 勤務日の睡眠時間", opts: [["十分", 0], ["やや足りない", 1], ["足りない", 3]] },
+            { title: "13. 休息時間（勤務間インターバル）", opts: [["十分", 0], ["やや足りない", 1], ["足りない", 3]] }
+        ];
+
+        const stressList = [
+            "1. 活気がわいてくる", "2. 元気がいっぱいだ", "3. 生き生きする", 
+            "4. 怒りを感じる", "5. 内心腹立たしい", "6. イライラしている", 
+            "7. ひどく疲れた", "8. へとへとだ", "9. だるい", 
+            "10. 気がはりつめている", "11. 不安だ", "12. 落着かない", 
+            "13. ゆううつだ", "14. 何をするのも面倒だ", "15. 物事に集中できない", 
+            "16. 気分が晴れない", "17. 仕事が手につかない", "18. 悲しいと感じる"
+        ];
+
+        const healthList = [
+            "1. 夜, よく眠れないことがある。",
+            "2. 休日の夜, 出勤を考えるとゆううつだ。",
+            "3. 職場に近づくと頭痛・胃痛など体調が悪くなる。"
+        ];
+
+        window.onload = function() {
+            document.getElementById('date').valueAsDate = new Date();
+
+            const fatigueOpts = [
+                { label: 'ほとんどなかった', val: 1 },
+                { label: 'ときどきあった', val: 1 },
+                { label: 'よくある', val: 3 }
+            ];
+            renderCustomQuestions('fatigueQuestions', fatigueList, 'fatigue', fatigueOpts);
+
+            renderWorkQuestions();
+
+            const stressLabels = [
+                { label: 'ほとんどなかった', val: 0 },
+                { label: 'ときどきあった', val: 0 },
+                { label: 'しばしばあった', val: 1 },
+                { label: 'ほとんどいつもあった', val: 1 }
+            ];
+            renderCustomQuestions('stressQuestions', stressList, 'stress', stressLabels);
+
+            const healthLabels = [
+                { label: '1. ほとんどなかった', val: 0 },
+                { label: '2. ときどきあった', val: 0 },
+                { label: '3. しばしばあった', val: 0 },
+                { label: '4. ほとんどいつもあった', val: 0 }
+            ];
+            renderCustomQuestions('healthQuestions', healthList, 'health', healthLabels);
+        };
+
+        function renderCustomQuestions(containerId, list, prefix, opts) {
+            const container = document.getElementById(containerId);
+            list.forEach((text, i) => {
+                let optsHtml = '';
+                opts.forEach((opt, idx) => {
+                    const checked = idx === 0 ? 'checked' : '';
+                    let assignVal = opt.val;
+
+                    if (prefix === 'fatigue' && i < 3) {
+                        if (idx === 0) assignVal = 1; 
+                        if (idx === 1) assignVal = 1; 
+                        if (idx === 2) assignVal = 3; 
+                    }
+
+                    if (prefix === 'stress' && i < 3) {
+                        if (idx === 0) assignVal = 1; 
+                        if (idx === 1) assignVal = 1; 
+                        if (idx === 2) assignVal = 0; 
+                        if (idx === 3) assignVal = 0; 
+                    }
+
+                    optsHtml += `<label class="cursor-pointer flex items-center gap-1.5"><input type="radio" name="${prefix}_${i}" value="${assignVal}" data-label="${opt.label}" ${checked}> ${opt.label}${prefix === 'health' ? '' : ` (${assignVal})`}</label>`;
+                });
+                container.innerHTML += `
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                        <div class="font-medium text-sm mb-2 text-slate-700">${text}</div>
+                        <div class="flex flex-wrap gap-4 text-xs">${optsHtml}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderWorkQuestions() {
+            const container = document.getElementById('workQuestions');
+            workList.forEach((item, i) => {
+                let optsHtml = '';
+                item.opts.forEach((opt, idx) => {
+                    const checked = idx === 0 ? 'checked' : '';
+                    optsHtml += `<label class="cursor-pointer flex items-center gap-1.5"><input type="radio" name="work_${i}" value="${opt[1]}" ${checked}> ${opt[0]} (${opt[1]})</label>`;
+                });
+                container.innerHTML += `
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                        <div class="font-medium text-sm mb-2 text-slate-700">${item.title}</div>
+                        <div class="flex flex-wrap gap-4 text-xs">${optsHtml}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function getSymptomRank(totalScore) {
+            if (totalScore <= 2) return 'Ⅰ';
+            if (totalScore <= 7) return 'Ⅱ';
+            if (totalScore <= 14) return 'Ⅲ';
+            return 'Ⅳ';
+        }
+
+        function getWorkGroup(totalScore) {
+            if (totalScore === 0) return 'A';
+            if (totalScore <= 5) return 'B';
+            if (totalScore <= 11) return 'C';
+            return 'D';
+        }
+
+        function getMatrixScore(symptomRank, workGroup) {
+            const table = {
+                'Ⅰ': { 'A': 0, 'B': 0, 'C': 2, 'D': 4 },
+                'Ⅱ': { 'A': 0, 'B': 1, 'C': 3, 'D': 5 },
+                'Ⅲ': { 'A': 0, 'B': 2, 'C': 4, 'D': 6 },
+                'Ⅳ': { 'A': 1, 'B': 3, 'C': 5, 'D': 7 }
+            };
+            return table[symptomRank]?.[workGroup] ?? 0;
+        }
+
+        function getFatigueDescription(score) {
+            if (score <= 1) return '低いと考えられる';
+            if (score <= 3) return 'やや高いと考えられる';
+            if (score <= 5) return '高いと考えられる';
+            return '非常に高いと考えられる';
+        }
+
+        function submitSurvey() {
+            const date = document.getElementById('date').value;
+            const dept = document.getElementById('dept').value || '未入力';
+            const name = document.getElementById('name').value || '未記名';
+            const gender = document.getElementById('gender').value;
+            const interview = document.querySelector('input[name="interview"]:checked').value;
+
+            let fatigueTotalScore = 0;
+            for (let i = 0; i < fatigueList.length; i++) {
+                fatigueTotalScore += parseInt(document.querySelector(`input[name="fatigue_${i}"]:checked`).value);
+            }
+
+            let workTotalScore = 0;
+            for (let i = 0; i < workList.length; i++) {
+                workTotalScore += parseInt(document.querySelector(`input[name="work_${i}"]:checked`).value);
+            }
+
+            let stressTotal = 0;
+            for (let i = 0; i < stressList.length; i++) {
+                stressTotal += parseInt(document.querySelector(`input[name="stress_${i}"]:checked`).value);
+            }
+
+            let healthAnswers = [];
+            for (let i = 0; i < healthList.length; i++) {
+                const checkedEl = document.querySelector(`input[name="health_${i}"]:checked`);
+                const labelText = checkedEl ? (checkedEl.getAttribute('data-label') || checkedEl.parentElement.textContent.trim()) : '未回答';
+                healthAnswers.push(`Q${i+1}:${labelText}`);
+            }
+
+            const symptomRank = getSymptomRank(fatigueTotalScore);
+            const workGroup = getWorkGroup(workTotalScore);
+            const fatigueScore = getMatrixScore(symptomRank, workGroup);
+            const fatigueDesc = getFatigueDescription(fatigueScore);
+
+            const fatigueRankStr = `${fatigueScore}点 (${fatigueDesc})`;
+            const workRankStr = `${workTotalScore}点 (${workGroup})`;
+            const stressStatus = stressTotal >= (gender === 'male' ? 45 : 43) ? '負担大' : '正常';
+
+            const record = {
+                id: Date.now(),
+                date, dept, name, gender,
+                fatigueTotal: fatigueScore,
+                fatigueRank: fatigueRankStr,
+                workTotal: workTotalScore,
+                workRank: workRankStr,
+                stressTotal,
+                stressStatus,
+                healthAnswers: healthAnswers.join(' / '),
+                interview
+            };
+
+            let records = JSON.parse(localStorage.getItem('survey_records') || '[]');
+            records.push(record);
+            localStorage.setItem('survey_records', JSON.stringify(records));
+
+            document.getElementById('surveyForm').style.display = 'none';
+            const resultBox = document.getElementById('resultBox');
+            const resultContent = document.getElementById('resultContent');
+
+            const hlS = (r) => r === symptomRank ? 'bg-amber-200 font-bold' : '';
+            const hlW = (g) => g === workGroup ? 'bg-amber-200 font-bold' : '';
+            const hlCell = (r, g) => (r === symptomRank && g === workGroup) ? 'bg-rose-500 text-white font-extrabold ring-2 ring-rose-700' : '';
+
+            resultContent.innerHTML = `
+                <p><strong>実施日:</strong> ${date} / <strong>所属:</strong> ${dept} / <strong>氏名:</strong> ${name}</p>
+                
+                <div class="bg-white p-4 rounded-xl border border-emerald-200 mt-3">
+                    <h4 class="font-bold text-emerald-900 mb-2">3. 総合判定 労働者の疲労蓄積度</h4>
+                    <p class="text-xs text-slate-600 mb-3">自覚症状合計: ${fatigueTotalScore}点 (区分: <strong>${symptomRank}</strong>) と、勤務の状況合計: ${workTotalScore}点 (評価: <strong>${workGroup}</strong>) から求めた疲労蓄積度の点数は <strong>${fatigueScore}点</strong> です。</p>
+                    
+                    <div class="overflow-x-auto my-3">
+                        <table class="w-full text-center text-xs border-collapse border border-slate-300">
+                            <thead>
+                                <tr class="bg-slate-100">
+                                    <th rowspan="2" class="border border-slate-300 p-2">自覚症状</th>
+                                    <th colspan="4" class="border border-slate-300 p-2">勤務の状況</th>
+                                </tr>
+                                <tr class="bg-slate-50">
+                                    <th class="border border-slate-300 p-2 ${hlW('A')}">A (0点)</th>
+                                    <th class="border border-slate-300 p-2 ${hlW('B')}">B (1〜5)</th>
+                                    <th class="border border-slate-300 p-2 ${hlW('C')}">C (6〜11)</th>
+                                    <th class="border border-slate-300 p-2 ${hlW('D')}">D (12以上)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="border border-slate-300 p-2 font-bold bg-slate-50 ${hlS('Ⅰ')}">Ⅰ (0〜2)</td>
+                                    <td class="border border-slate-300 p-2 ${hlCell('Ⅰ','A')}">0</td>
+                                    <td class="border border-slate-300 p-2 ${hlCell('Ⅰ','B')}">0</td>
+                                    <td class="border border-slate-300 p-2 ${hlCell('Ⅰ','C')}">2</td>
+                                    <td class="border border-slate-300 p-2 ${hlCell('Ⅰ','D')}">4</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-slate-300 p-2 font-bold bg-slate-50 ${hlS('Ⅱ')}">Ⅱ (3〜7)</td>
+                                    <td class="border border-slate-300 p-2 ${hlCell('Ⅱ','A')}">0</td>
+                                    <td class="border border-slate-300 p-2 ${hlCell('Ⅱ','B')}">1</td>
+                                    <td class="border border-slate-300 p-2 ${hlCell('Ⅱ','C')}">3</td>
+                                    <td class="border border-slate-300 p-2 ${hlCell('Ⅱ','D')}">5</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-slate-300 p-2 font-bold bg-slate-50 ${hlS('Ⅲ')}">Ⅲ (8〜14)</td>
+                                    <td class="border border-slate-300 p-2 ${hlCell('Ⅲ','A')}">0</td>
+                                    <td class="border border-slate-300 p-2 ${hlCell('Ⅲ','B')}">2</td>
+                                    <td class="border border-slate-300 p-2 ${hlCell('Ⅲ','C')}">4</td>
+                                    <td class="border border-slate-300 p-2 ${hlCell('Ⅲ','D')}">6</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-slate-300 p-2 font-bold bg-slate-50 ${hlS('Ⅳ')}">Ⅳ (15〜)</td>
+                                    <td class="border border-slate-300 p-2 ${hlCell('Ⅳ','A')}">1</td>
+                                    <td class="border border-slate-300 p-2 ${hlCell('Ⅳ','B')}">3</td>
+                                    <td class="border border-slate-300 p-2 ${hlCell('Ⅳ','C')}">5</td>
+                                    <td class="border border-slate-300 p-2 ${hlCell('Ⅳ','D')}">7</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3 text-xs text-slate-600 bg-slate-50 p-3 rounded-lg space-y-1">
+                        <p>■ 疲労蓄積度判定: <strong>${fatigueScore}点（${fatigueDesc}）</strong></p>
+                        <p>■ 勤務状況評価: <strong>${workTotalScore}点 (${workGroup})</strong></p>
+                        <p>■ ストレスチェック合計: <strong>${stressTotal}点 (${stressStatus})</strong></p>
+                        <p>■ 面接指導希望: <strong>${interview}</strong></p>
+                    </div>
+                </div>
+            `;
+            resultBox.classList.remove('hidden');
+            resultBox.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function switchView(view) {
+            if (view === 'user') {
+                document.getElementById('userView').classList.remove('hidden');
+                document.getElementById('adminView').classList.add('hidden');
+                document.getElementById('surveyForm').style.display = 'block';
+                document.getElementById('resultBox').classList.add('hidden');
+            } else {
+                document.getElementById('userView').classList.add('hidden');
+                document.getElementById('adminView').classList.remove('hidden');
+                loadAdminTable();
+            }
+        }
+
+        function openAdminLoginModal() {
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('adminLoginModal').classList.remove('hidden');
+        }
+        function closeAdminLoginModal() {
+            document.getElementById('adminLoginModal').classList.add('hidden');
+        }
+        function verifyAdminPassword() {
+            const pwd = document.getElementById('adminPasswordInput').value;
+            if (pwd === 'admin123') {
+                closeAdminLoginModal();
+                switchView('admin');
+            } else {
+                alert('パスワードが間違っています。');
+            }
+        }
+
+        function loadAdminTable() {
+            const tbody = document.getElementById('adminTableBody');
+            const noDataMsg = document.getElementById('noDataMsg');
+            const records = JSON.parse(localStorage.getItem('survey_records') || '[]');
+            
+            tbody.innerHTML = '';
+            if (records.length === 0) {
+                noDataMsg.classList.remove('hidden');
+                return;
+            }
+            noDataMsg.classList.add('hidden');
+
+            records.slice().reverse().forEach(r => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3">${r.date}</td>
+                        <td class="p-3">${r.dept}</td>
+                        <td class="p-3 font-medium text-slate-800">${r.name}</td>
+                        <td class="p-3">${r.fatigueRank}</td>
+                        <td class="p-3">${r.workRank}</td>
+                        <td class="p-3">${r.stressTotal}点</td>
+                        <td class="p-3 text-xs">${r.healthAnswers || '-'}</td>
+                        <td class="p-3">${r.interview === 'はい' ? '<span class="text-rose-600 font-bold">希望する</span>' : 'なし'}</td>
+                        <td class="p-3">
+                            <button onclick="deleteRecord(${r.id})" class="text-rose-500 hover:text-rose-700 text-xs bg-rose-50 px-2 py-1 rounded">削除</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function deleteRecord(id) {
+            let records = JSON.parse(localStorage.getItem('survey_records') || '[]');
+            records = records.filter(r => r.id !== id);
+            localStorage.setItem('survey_records', JSON.stringify(records));
+            loadAdminTable();
+        }
+
+        function clearData() {
+            if (confirm('すべての回答データを削除しますか？この操作は元に戻せません。')) {
+                localStorage.removeItem('survey_records');
+                loadAdminTable();
+            }
+        }
+
+        function exportCSV() {
+            const records = JSON.parse(localStorage.getItem('survey_records') || '[]');
+            if (records.length === 0) {
+                alert('エクスポートするデータがありません。');
+                return;
+            }
+
+            let csv = '\uFEFF実施日,所属,氏名,性別,疲労蓄積度スコア,疲労判定,勤務状況スコア,勤務判定,ストレススコア,ストレス状態,最近の健康状態,面接希望\n';
+            records.forEach(r => {
+                csv += `"${r.date}","${r.dept}","${r.name}","${r.gender}",${r.fatigueTotal},"${r.fatigueRank}",${r.workTotal},"${r.workRank}",${r.stressTotal},"${r.stressStatus}","${r.healthAnswers || ''}","${r.interview}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fatigue_stress_survey_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
