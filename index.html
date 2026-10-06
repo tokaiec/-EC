@@ -152,7 +152,6 @@
     </div>
 
     <script>
-        // ★ここに取得したGASのウェブアプリのURLを貼り付けてください
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyqI67HACqxs6mYdarZ2RljG-s4MJyIaa0UjvzgxbKIC4_durXyQCcwUqIqDN5Q8ycm1Q/exec';
 
         const fatigueList = [
@@ -194,7 +193,10 @@
         ];
 
         window.onload = function() {
-            document.getElementById('date').valueAsDate = new Date();
+            // 日本時間（JST）の現在日付を取得してデフォルトに設定
+            const now = new Date();
+            const jstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+            document.getElementById('date').value = jstDate.toISOString().split('T')[0];
 
             const fatigueOpts = [
                 { label: 'ほとんどなかった', val: 1 },
@@ -483,9 +485,20 @@
                 noDataMsg.classList.add('hidden');
 
                 records.slice().reverse().forEach(r => {
+                    // 日付の表示形式を綺麗に整える（タイムゾーンのズレ対策）
+                    let displayDate = '';
+                    if (r.date) {
+                        let dateStr = r.date.toString();
+                        if (dateStr.includes('T')) {
+                            displayDate = dateStr.split('T')[0];
+                        } else {
+                            displayDate = dateStr.substring(0, 10);
+                        }
+                    }
+
                     tbody.innerHTML += `
                         <tr class="hover:bg-slate-50">
-                            <td class="p-3">${r.date}</td>
+                            <td class="p-3">${displayDate}</td>
                             <td class="p-3">${r.dept}</td>
                             <td class="p-3 font-medium text-slate-800">${r.name}</td>
                             <td class="p-3">${r.fatigueRank}</td>
@@ -512,7 +525,7 @@
 
                 let csv = '\uFEFF実施日,所属,氏名,性別,疲労蓄積度スコア,疲労判定,勤務状況スコア,勤務判定,ストレススコア,ストレス状態,最近の健康状態,面接希望\n';
                 records.forEach(r => {
-                    csv += `"${r.date}","${r.dept}","${r.name}","${r.gender}",${r.fatigueTotal},"${r.fatigueRank}",${r.workTotal},"${r.workRank}",${r.stressTotal},"${r.stressStatus}","${r.healthAnswers || ''}","${r.interview}"\n`;
+                    csv += `"${r.date}","${r.dept}","${r.name}","${r.gender}",${r.fatigueTotal},"${r.fatigueRank}",${r.totalScore || r.workTotal},"${r.workRank}",${r.stressTotal},"${r.stressStatus}","${r.healthAnswers || ''}","${r.interview}"\n`;
                 });
 
                 const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
