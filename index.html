@@ -14,7 +14,7 @@
     <header class="max-w-4xl mx-auto flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm">
         <h1 class="text-xl font-bold text-blue-900">労働者自己診断システム</h1>
         <div class="space-x-2">
-            <button id="navUserBtn" onclick="switchView('user')" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg shadow hover:bg-blue-700 transition">アンケート回答</button>
+            <button id="navUserBtn" onclick="switchView('user')" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg shadow hover:bg-blue-700 transition">アンケート回答に戻る</button>
             <button id="navAdminBtn" onclick="openAdminLoginModal()" class="px-4 py-2 bg-slate-700 text-white text-sm font-semibold rounded-lg shadow hover:bg-slate-800 transition">管理者画面</button>
         </div>
     </header>
@@ -33,9 +33,18 @@
                     <label class="block text-xs font-bold text-slate-700 mb-1">実施日</label>
                     <input type="date" id="date" class="w-full p-2 border border-slate-300 rounded-md text-sm">
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">所属</label>
-                    <input type="text" id="dept" placeholder="例：開発部" class="w-full p-2 border border-slate-300 rounded-md text-sm">
+                 <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">会社・所属</label>
+                    <select id="dept" class="w-full p-2 border border-slate-300 rounded-md text-sm bg-white">
+                        <option value="ECU 経営管理本部">ECU 経営管理本部</option>
+                        <option value="EC 技術本部">EC 技術本部</option>
+                        <option value="EC 制御本部">EC 制御本部</option>
+                        <option value="EC 制御本部">EC 工事本部名古屋</option>
+                        <option value="EC 制御本部">EC 工事本部小牧</option>
+                        <option value="EC 制御本部">ECT 内浜</option>
+                        <option value="EC 制御本部">ECT 滋賀</option>
+                        <option value="EC 制御本部">ECT 小牧</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">氏名</label>
@@ -44,8 +53,8 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">性別（ストレス判定用）</label>
                     <select id="gender" class="w-full p-2 border border-slate-300 rounded-md text-sm bg-white">
-                        <option value="male">男性</option>
-                        <option value="female">女性</option>
+                        <option value="男性">男性</option>
+                        <option value="女性">女性</option>
                     </select>
                 </div>
             </div>
@@ -153,8 +162,6 @@
 
     <script>
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby7XxQSfcA30b92brWt1l8IJdFslwd_YHgSTw3RGx39qqda4xVDHpVRLlZ-JRZbR6TW/exec';
-    
-    
 
         const fatigueList = [
             "イライラする", "不安だ", "落ち着かない", "ゆううつだ", 
@@ -195,7 +202,6 @@
         ];
 
         window.onload = function() {
-            // 日本時間（JST）の現在日付を取得してデフォルトに設定
             const now = new Date();
             const jstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
             document.getElementById('date').value = jstDate.toISOString().split('T')[0];
@@ -353,7 +359,6 @@
                 interview
             };
 
-            // スプレッドシートへ送信
             fetch(GAS_WEB_APP_URL, {
                 method: 'POST',
                 body: JSON.stringify(record)
@@ -444,7 +449,20 @@
             if (view === 'user') {
                 document.getElementById('userView').classList.remove('hidden');
                 document.getElementById('adminView').classList.add('hidden');
-                document.getElementById('surveyForm').style.display = 'block';
+                
+                // フォーム内の内容をリセット
+                const form = document.getElementById('surveyForm');
+                form.reset();
+                
+                // フォームの外にある入力欄（実施日・所属・氏名・性別）も明示的に初期値に戻す
+                const now = new Date();
+                const jstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+                document.getElementById('date').value = jstDate.toISOString().split('T')[0];
+                document.getElementById('dept').selectedIndex = 0;
+                document.getElementById('name').value = '';
+                document.getElementById('gender').selectedIndex = 0;
+
+                form.style.display = 'block';
                 document.getElementById('resultBox').classList.add('hidden');
             } else {
                 document.getElementById('userView').classList.add('hidden');
@@ -481,25 +499,20 @@
                 
                 tbody.innerHTML = '';
                 if (records.length === 0) {
-                    noDataMsg.classList.add('hidden'); // Fix toggle
                     noDataMsg.classList.remove('hidden');
                     return;
                 }
                 noDataMsg.classList.add('hidden');
 
                 records.slice().reverse().forEach(r => {
-                    // タイムゾーンによる1日ズレを解消するため、日付に9時間を足して日本時間として日付文字列を取得する
                     let displayDate = '';
                     if (r.date) {
                         let dateStr = r.date.toString();
-                        // タイムゾーン（TやZ）が含まれている場合
                         if (dateStr.includes('T') || dateStr.includes('Z')) {
                             let d = new Date(dateStr);
-                            // 9時間（ミリ秒）を足して日本時間に補正
                             d.setTime(d.getTime() + (9 * 60 * 60 * 1000));
                             displayDate = d.toISOString().split('T')[0];
                         } else {
-                            // すでに "YYYY-MM-DD" の形になっている場合はそのまま
                             displayDate = dateStr.substring(0, 10);
                         }
                     }
