@@ -28,42 +28,49 @@
                 <p class="text-sm text-slate-500 mt-1">疲労蓄積度およびストレス・健康状態の診断を行います</p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl mb-6 border border-slate-200">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">実施日</label>
-                    <input type="date" id="date" class="w-full p-2 border border-slate-300 rounded-md text-sm">
-                </div>
-                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">会社・所属</label>
-                    <select id="dept" class="w-full p-2 border border-slate-300 rounded-md text-sm bg-white">
-                        <option value="ECU 経営管理本部">ECU 経営管理本部</option>
-                        <option value="EC 技術本部">EC 技術本部</option>
-                        <option value="EC 制御本部">EC 制御本部</option>
-                        <option value="EC 工事本部名古屋">EC 工事本部名古屋</option>
-                        <option value="EC 工事本部小牧">EC 工事本部小牧</option>
-                        <option value="EC 内浜">ECT 内浜</option>
-                        <option value="EC 滋賀">ECT 滋賀</option>
-                        <option value="EC 小牧">ECT 小牧</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">氏名</label>
-                    <input type="text" id="name" placeholder="氏名を入力" class="w-full p-2 border border-slate-300 rounded-md text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">性別（ストレス判定用）</label>
-                    <select id="gender" class="w-full p-2 border border-slate-300 rounded-md text-sm bg-white">
-                        <option value="男性">男性</option>
-                        <option value="女性">女性</option>
-                    </select>
-                </div>
-            </div>
-
             <form id="surveyForm" onsubmit="event.preventDefault(); submitSurvey();">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl mb-6 border border-slate-200">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">実施日 <span class="text-rose-500">*</span></label>
+                        <input type="date" id="date" required class="w-full p-2 border border-slate-300 rounded-md text-sm">
+                    </div>
+                     <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">会社・所属 <span class="text-rose-500">*</span></label>
+                        <select id="dept" required class="w-full p-2 border border-slate-300 rounded-md text-sm bg-white">
+                            <option value="" disabled selected>選択してください</option>
+                            <option value="ECU 経営管理本部">ECU 経営管理本部</option>
+                            <option value="EC 技術本部">EC 技術本部</option>
+                            <option value="EC 制御本部">EC 制御本部</option>
+                            <option value="EC 工事本部名古屋">EC 工事本部名古屋</option>
+                            <option value="EC 工事本部小牧">EC 工事本部小牧</option>
+                            <option value="EC 内浜">ECT 内浜</option>
+                            <option value="EC 滋賀">ECT 滋賀</option>
+                            <option value="EC 小牧">ECT 小牧</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">氏名 <span class="text-rose-500">*</span></label>
+                        <input type="text" id="name" required placeholder="氏名を入力" class="w-full p-2 border border-slate-300 rounded-md text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">性別（ストレス判定用） <span class="text-rose-500">*</span></label>
+                        <select id="gender" required class="w-full p-2 border border-slate-300 rounded-md text-sm bg-white">
+                            <option value="" disabled selected>選択してください</option>
+                            <option value="男性">男性</option>
+                            <option value="女性">女性</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- カスタムメッセージ表示領域 -->
+                <div id="validationMessage" class="hidden mb-4 p-3 bg-rose-100 border border-rose-400 text-rose-700 rounded-lg text-sm font-semibold text-center">
+                    必須項目（会社・所属、氏名、性別）をすべて入力・選択してください。
+                </div>
+
                 <section class="mb-8">
                     <h3 class="text-lg font-bold border-b-2 border-blue-600 pb-1 mb-4 text-blue-900">1. 最近1か月間の自覚症状（疲労蓄積度診断）</h3>
                     <div class="bg-blue-50 border-l-4 border-blue-600 p-3 text-xs text-blue-800 mb-4 rounded-r-md">
-                        最も当てはまる項目を選んでください。（1〜3番：ほとんどなかった/ときどきあったで1点、よくあるで3点）
+                        最も当てはまる項目を選んでください。（ほとんどなかった：0点 / ときどきあった：1点 / よくある：3点）
                     </div>
                     <div id="fatigueQuestions" class="space-y-3"></div>
                 </section>
@@ -206,8 +213,9 @@
             const jstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
             document.getElementById('date').value = jstDate.toISOString().split('T')[0];
 
+            // 疲労蓄積度の「ほとんどなかった」の点数を 0 に変更
             const fatigueOpts = [
-                { label: 'ほとんどなかった', val: 1 },
+                { label: 'ほとんどなかった', val: 0 },
                 { label: 'ときどきあった', val: 1 },
                 { label: 'よくある', val: 3 }
             ];
@@ -238,8 +246,11 @@
                 opts.forEach((opt, idx) => {
                     const checked = idx === 0 ? 'checked' : '';
                     let assignVal = opt.val;
-                    if (prefix === 'fatigue' && i < 3) {
-                        if (idx === 0) assignVal = 1; 
+                    
+                    if (prefix === 'fatigue') {
+                        // 1. 最近1か月間の自覚症状
+                        // 1〜3番含むすべてで「ほとんどなかった」は 0点
+                        if (idx === 0) assignVal = 0; 
                         if (idx === 1) assignVal = 1; 
                         if (idx === 2) assignVal = 3; 
                     }
@@ -309,14 +320,32 @@
         }
 
         function submitSurvey() {
+            const date = document.getElementById('date').value;
+            const dept = document.getElementById('dept').value;
+            const name = document.getElementById('name').value.trim();
+            const gender = document.getElementById('gender').value;
+            const valMsg = document.getElementById('validationMessage');
+
+            // 必須入力チェック（会社・所属、氏名、性別）
+            if (!dept || !name || !gender || !date) {
+                valMsg.classList.remove('hidden');
+                if (!dept) {
+                    document.getElementById('dept').focus();
+                } else if (!name) {
+                    document.getElementById('name').focus();
+                } else if (!gender) {
+                    document.getElementById('gender').focus();
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+
+            valMsg.classList.add('hidden');
+
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = '送信中...';
 
-            const date = document.getElementById('date').value;
-            const dept = document.getElementById('dept').value || '未入力';
-            const name = document.getElementById('name').value || '未記名';
-            const gender = document.getElementById('gender').value;
             const interview = document.querySelector('input[name="interview"]:checked').value;
 
             let fatigueTotalScore = 0;
@@ -354,7 +383,7 @@
                 workTotal: workTotalScore,
                 workRank: `${workTotalScore}点 (${workGroup})`,
                 stressTotal,
-                stressStatus: stressTotal >= (gender === 'male' ? 45 : 43) ? '負担大' : '男性14、女性13以上で「心理的ストレスの負担大」',
+                stressStatus: stressTotal >= (gender === '男性' ? 45 : 43) ? '負担大' : '男性45、女性43以上で「心理的ストレスの負担大」',
                 healthAnswers: healthAnswers.join(' / '),
                 interview
             };
@@ -377,7 +406,7 @@
                 const hlCell = (r, g) => (r === symptomRank && g === workGroup) ? 'bg-rose-500 text-white font-extrabold ring-2 ring-rose-700' : '';
 
                 resultContent.innerHTML = `
-                    <p><strong>実施日:</strong> ${date} / <strong>所属:</strong> ${dept} / <strong>氏名:</strong> ${name}</p>
+                    <p><strong>実施日:</strong> ${date} / <strong>所属:</strong> ${dept} / <strong>氏名:</strong> ${name} / <strong>性別:</strong> ${gender}</p>
                     <div class="bg-white p-4 rounded-xl border border-emerald-200 mt-3">
                         <h4 class="font-bold text-emerald-900 mb-2">3. 総合判定 労働者の疲労蓄積度</h4>
                         <p class="text-xs text-slate-600 mb-3">自覚症状合計: ${fatigueTotalScore}点 (区分: <strong>${symptomRank}</strong>) と、勤務の状況合計: ${workTotalScore}点 (評価: <strong>${workGroup}</strong>) から求めた疲労蓄積度の点数は <strong>${fatigueScore}点</strong> です。</p>
@@ -439,7 +468,9 @@
                 resultBox.scrollIntoView({ behavior: 'smooth' });
             })
             .catch(err => {
-                alert('送信に失敗しました。ネットワーク状況を確認してください。');
+                // カスタムダイアログ表示
+                valMsg.textContent = '送信に失敗しました。ネットワーク状況を確認してください。';
+                valMsg.classList.remove('hidden');
                 submitBtn.disabled = false;
                 submitBtn.textContent = '診断結果を送信・保存する';
             });
@@ -453,8 +484,9 @@
                 // フォーム内の内容をリセット
                 const form = document.getElementById('surveyForm');
                 form.reset();
+                document.getElementById('validationMessage').classList.add('hidden');
                 
-                // フォームの外にある入力欄（実施日・所属・氏名・性別）も明示的に初期値に戻す
+                // フォームの外にある入力欄（実施日・所属・氏名・性別）も初期値に戻す
                 const now = new Date();
                 const jstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
                 document.getElementById('date').value = jstDate.toISOString().split('T')[0];
@@ -484,7 +516,9 @@
                 closeAdminLoginModal();
                 switchView('admin');
             } else {
-                alert('パスワードが間違っています。');
+                const valMsg = document.getElementById('validationMessage');
+                valMsg.textContent = 'パスワードが間違っています。';
+                valMsg.classList.remove('hidden');
             }
         }
 
@@ -540,7 +574,9 @@
             .then(res => res.json())
             .then(records => {
                 if (records.length === 0) {
-                    alert('エクスポートするデータがありません。');
+                    const valMsg = document.getElementById('validationMessage');
+                    valMsg.textContent = 'エクスポートするデータがありません。';
+                    valMsg.classList.remove('hidden');
                     return;
                 }
 
