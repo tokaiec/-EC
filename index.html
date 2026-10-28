@@ -70,7 +70,7 @@
                 <section class="mb-8">
                     <h3 class="text-lg font-bold border-b-2 border-blue-600 pb-1 mb-4 text-blue-900">1. 最近1か月間の自覚症状（疲労蓄積度診断）</h3>
                     <div class="bg-blue-50 border-l-4 border-blue-600 p-3 text-xs text-blue-800 mb-4 rounded-r-md">
-                        最も当てはまる項目を選んでください。（ほとんどなかった：0点 / ときどきあった：1点 / よくある：3点）
+                        最も当てはまる項目を選んでください。
                     </div>
                     <div id="fatigueQuestions" class="space-y-3"></div>
                 </section>
@@ -92,9 +92,9 @@
                 </section>
 
                 <section class="mb-8">
-                    <h3 class="text-lg font-bold border-b-2 border-blue-600 pb-1 mb-4 text-blue-900">3. 自己診断チェック②（ストレス・健康状態）</h3>
+                    <h3 class="text-lg font-bold border-b-2 border-blue-600 pb-1 mb-4 text-blue-900">3. 自己診断チェック②（ストレス・健康状態）</br>※ときどきあった 25~50％前後　しばしばあった 60%前後　ほとんどいつもあった 90%前後</h3>
                     <div class="bg-blue-50 border-l-4 border-blue-600 p-3 text-xs text-blue-800 mb-4 rounded-r-md">
-                        最近のあなたの状態についてお答えください。（1〜3番は、ほとんどなかった/ときどきあったで1点）
+                        最近のあなたの状態についてお答えください。
                     </div>
                     <div id="stressQuestions" class="space-y-3"></div>
                     
@@ -231,10 +231,10 @@
             renderCustomQuestions('stressQuestions', stressList, 'stress', stressLabels);
 
             const healthLabels = [
-                { label: '1. ほとんどなかった', val: 0 },
-                { label: '2. ときどきあった', val: 0 },
-                { label: '3. しばしばあった', val: 0 },
-                { label: '4. ほとんどいつもあった', val: 0 }
+                { label: 'ほとんどなかった', val: 0 },
+                { label: 'ときどきあった', val: 0 },
+                { label: 'しばしばあった', val: 0 },
+                { label: 'ほとんどいつもあった', val: 0 }
             ];
             renderCustomQuestions('healthQuestions', healthList, 'health', healthLabels);
         };
@@ -260,7 +260,10 @@
                         if (idx === 2) assignVal = 0; 
                         if (idx === 3) assignVal = 0; 
                     }
-                    optsHtml += `<label class="cursor-pointer flex items-center gap-1.5"><input type="radio" name="${prefix}_${i}" value="${assignVal}" data-label="${opt.label}" ${checked}> ${opt.label}${prefix === 'health' ? '' : ` (${assignVal})`}</label>`;
+
+                    // stressとhealthの場合は配点(点数)を表示しない
+                    const showScore = (prefix === 'stress' || prefix === 'health') ? '' : ` (${assignVal})`;
+                    optsHtml += `<label class="cursor-pointer flex items-center gap-1.5"><input type="radio" name="${prefix}_${i}" value="${assignVal}" data-label="${opt.label}" ${checked}> ${opt.label}${showScore}</label>`;
                 });
                 container.innerHTML += `
                     <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
@@ -383,7 +386,7 @@
                 workTotal: workTotalScore,
                 workRank: `${workTotalScore}点 (${workGroup})`,
                 stressTotal,
-                stressStatus: stressTotal >= (gender === '男性' ? 45 : 43) ? '負担大' : '男性45、女性43以上で「心理的ストレスの負担大」',
+                stressStatus: stressTotal >= (gender === '男性' ? 15 : 13) ? '負担大' : '男性15、女性13以上で「心理的ストレスの負担大」',
                 healthAnswers: healthAnswers.join(' / '),
                 interview
             };
