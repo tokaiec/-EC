@@ -14,7 +14,6 @@
     <header class="max-w-4xl mx-auto flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm">
         <h1 class="text-xl font-bold text-blue-900">労働者自己診断システム</h1>
         <div class="space-x-2">
-            <button id="navUserBtn" onclick="switchView('user')" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg shadow hover:bg-blue-700 transition">アンケート回答に戻る</button>
             <button id="navAdminBtn" onclick="openAdminLoginModal()" class="px-4 py-2 bg-slate-700 text-white text-sm font-semibold rounded-lg shadow hover:bg-slate-800 transition">管理者画面</button>
         </div>
     </header>
@@ -29,7 +28,7 @@
             </div>
 
             <form id="surveyForm" onsubmit="event.preventDefault(); submitSurvey();">
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl mb-6 border border-slate-200">
+                <div id="basicInfoContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl mb-6 border border-slate-200 transition-all">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">実施日 <span class="text-rose-500">*</span></label>
                         <input type="date" id="date" required class="w-full p-2 border border-slate-300 rounded-md text-sm">
@@ -50,7 +49,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">氏名 <span class="text-rose-500">*</span></label>
-                        <input type="text" id="name" required placeholder="氏名を入力" class="w-full p-2 border border-slate-300 rounded-md text-sm">
+                        <input type="text" id="name" required placeholder="姓・名を入力" class="w-full p-2 border border-slate-300 rounded-md text-sm">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">性別（ストレス判定用） <span class="text-rose-500">*</span></label>
@@ -64,7 +63,7 @@
 
                 <!-- カスタムメッセージ表示領域 -->
                 <div id="validationMessage" class="hidden mb-4 p-3 bg-rose-100 border border-rose-400 text-rose-700 rounded-lg text-sm font-semibold text-center">
-                    必須項目（会社・所属、氏名、性別）をすべて入力・選択してください。
+                    未回答の項目があります。すべての質問にお答えください。
                 </div>
 
                 <section class="mb-8">
@@ -82,17 +81,17 @@
                     </div>
                     <div id="workQuestions" class="space-y-3"></div>
 
-                    <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl mt-4">
-                        <div class="font-medium text-sm text-slate-800 mb-2">あなたは、医師との面接、指導の受診を希望しますか？</div>
+                    <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl mt-4 transition-all" id="interviewContainer">
+                        <div class="font-medium text-sm text-slate-800 mb-2">あなたは、医師との面接、指導の受診を希望しますか？ <span class="text-rose-500">*</span></div>
                         <div class="flex gap-6 text-sm">
                             <label class="cursor-pointer flex items-center gap-2"><input type="radio" name="interview" value="はい"> はい</label>
-                            <label class="cursor-pointer flex items-center gap-2"><input type="radio" name="interview" value="いいえ" checked> いいえ</label>
+                            <label class="cursor-pointer flex items-center gap-2"><input type="radio" name="interview" value="いいえ"> いいえ</label>
                         </div>
                     </div>
                 </section>
 
                 <section class="mb-8">
-                    <h3 class="text-lg font-bold border-b-2 border-blue-600 pb-1 mb-4 text-blue-900">3. 自己診断チェック②（ストレス・健康状態）</br>※ときどきあった 25~50％前後　しばしばあった 60%前後　ほとんどいつもあった 90%前後</h3>
+                    <h3 class="text-lg font-bold border-b-2 border-blue-600 pb-1 mb-4 text-blue-900">3. 自己診断チェック②（ストレス・健康状態）</br>※ときどきあった 25~50％前後 しばしばあった 60%前後 ほとんどいつもあった 90%前後</h3>
                     <div class="bg-blue-50 border-l-4 border-blue-600 p-3 text-xs text-blue-800 mb-4 rounded-r-md">
                         最近のあなたの状態についてお答えください。
                     </div>
@@ -104,18 +103,14 @@
 
                 <div class="text-center pt-4">
                     <button type="submit" id="submitBtn" class="px-8 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition transform hover:-translate-y-0.5">
-                        診断結果を送信・保存する
+                        回答を送信する
                     </button>
                 </div>
             </form>
 
             <div id="resultBox" class="hidden mt-8 p-6 bg-emerald-50 border border-emerald-200 rounded-xl">
-                <h3 class="text-lg font-bold text-emerald-800 mb-2">診断が完了しました</h3>
-                <div id="resultContent" class="text-sm space-y-4 text-slate-700"></div>
-                <button onclick="switchView('user'); window.scrollTo({top:0, behavior:'smooth'})" class="mt-4 px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg shadow hover:bg-emerald-700 transition">
-                    新規の回答を始める
-                </button>
-            </div>
+                <h3 class="text-lg font-bold text-emerald-800 mb-2">診断結果　ご回答頂きありがとうございました。</h3>
+                <div id="resultContent" class="text-sm space-y-4 text-slate-700">
         </div>
 
         <!-- ================= 管理者用画面 ================= -->
@@ -213,7 +208,6 @@
             const jstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
             document.getElementById('date').value = jstDate.toISOString().split('T')[0];
 
-            // 疲労蓄積度の「ほとんどなかった」の点数を 0 に変更
             const fatigueOpts = [
                 { label: 'ほとんどなかった', val: 0 },
                 { label: 'ときどきあった', val: 1 },
@@ -244,12 +238,9 @@
             list.forEach((text, i) => {
                 let optsHtml = '';
                 opts.forEach((opt, idx) => {
-                    const checked = idx === 0 ? 'checked' : '';
                     let assignVal = opt.val;
                     
                     if (prefix === 'fatigue') {
-                        // 1. 最近1か月間の自覚症状
-                        // 1〜3番含むすべてで「ほとんどなかった」は 0点
                         if (idx === 0) assignVal = 0; 
                         if (idx === 1) assignVal = 1; 
                         if (idx === 2) assignVal = 3; 
@@ -261,12 +252,11 @@
                         if (idx === 3) assignVal = 0; 
                     }
 
-                    // stressとhealthの場合は配点(点数)を表示しない
                     const showScore = (prefix === 'stress' || prefix === 'health') ? '' : ` (${assignVal})`;
-                    optsHtml += `<label class="cursor-pointer flex items-center gap-1.5"><input type="radio" name="${prefix}_${i}" value="${assignVal}" data-label="${opt.label}" ${checked}> ${opt.label}${showScore}</label>`;
+                    optsHtml += `<label class="cursor-pointer flex items-center gap-1.5"><input type="radio" name="${prefix}_${i}" value="${assignVal}" data-label="${opt.label}"> ${opt.label}${showScore}</label>`;
                 });
                 container.innerHTML += `
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg transition-all" id="group_${prefix}_${i}">
                         <div class="font-medium text-sm mb-2 text-slate-700">${text}</div>
                         <div class="flex flex-wrap gap-4 text-xs">${optsHtml}</div>
                     </div>
@@ -278,16 +268,26 @@
             const container = document.getElementById('workQuestions');
             workList.forEach((item, i) => {
                 let optsHtml = '';
-                item.opts.forEach((opt, idx) => {
-                    const checked = idx === 0 ? 'checked' : '';
-                    optsHtml += `<label class="cursor-pointer flex items-center gap-1.5"><input type="radio" name="work_${i}" value="${opt[1]}" ${checked}> ${opt[0]} (${opt[1]})</label>`;
+                item.opts.forEach((opt) => {
+                    optsHtml += `<label class="cursor-pointer flex items-center gap-1.5"><input type="radio" name="work_${i}" value="${opt[1]}"> ${opt[0]} (${opt[1]})</label>`;
                 });
                 container.innerHTML += `
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg transition-all" id="group_work_${i}">
                         <div class="font-medium text-sm mb-2 text-slate-700">${item.title}</div>
                         <div class="flex flex-wrap gap-4 text-xs">${optsHtml}</div>
                     </div>
                 `;
+            });
+        }
+
+        // すべてのエラー強調（赤枠）をリセットする関数
+        function clearErrors() {
+            document.getElementById('basicInfoContainer').classList.remove('border-rose-500', 'ring-2', 'ring-rose-200');
+            document.getElementById('interviewContainer').classList.remove('border-rose-500', 'ring-2', 'ring-rose-200');
+            
+            const allGroups = document.querySelectorAll('[id^="group_"]');
+            allGroups.forEach(el => {
+                el.classList.remove('border-rose-500', 'bg-rose-50', 'ring-2', 'ring-rose-200');
             });
         }
 
@@ -323,24 +323,87 @@
         }
 
         function submitSurvey() {
+            clearErrors();
+
             const date = document.getElementById('date').value;
             const dept = document.getElementById('dept').value;
             const name = document.getElementById('name').value.trim();
             const gender = document.getElementById('gender').value;
             const valMsg = document.getElementById('validationMessage');
 
-            // 必須入力チェック（会社・所属、氏名、性別）
-            if (!dept || !name || !gender || !date) {
+            // 基本情報の必須チェック
+            if (!date || !dept || !name || !gender) {
+                valMsg.textContent = '必須項目（実施日、会社・所属、氏名、性別）をすべて入力・選択してください。';
                 valMsg.classList.remove('hidden');
-                if (!dept) {
-                    document.getElementById('dept').focus();
-                } else if (!name) {
-                    document.getElementById('name').focus();
-                } else if (!gender) {
-                    document.getElementById('gender').focus();
-                }
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                const basicBox = document.getElementById('basicInfoContainer');
+                basicBox.classList.add('border-rose-500', 'ring-2', 'ring-rose-200');
+                basicBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
+            }
+
+            // 自覚症状の未回答チェック
+            for (let i = 0; i < fatigueList.length; i++) {
+                if (!document.querySelector(`input[name="fatigue_${i}"]:checked`)) {
+                    valMsg.textContent = `「1. 最近1か月間の自覚症状」に未回答の項目があります。`;
+                    valMsg.classList.remove('hidden');
+                    
+                    const target = document.getElementById(`group_fatigue_${i}`);
+                    target.classList.add('border-rose-500', 'bg-rose-50', 'ring-2', 'ring-rose-200');
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+            }
+
+            // 勤務状況の未回答チェック
+            for (let i = 0; i < workList.length; i++) {
+                if (!document.querySelector(`input[name="work_${i}"]:checked`)) {
+                    valMsg.textContent = `「2. 最近1か月間の勤務の状況」に未回答の項目があります。`;
+                    valMsg.classList.remove('hidden');
+                    
+                    const target = document.getElementById(`group_work_${i}`);
+                    target.classList.add('border-rose-500', 'bg-rose-50', 'ring-2', 'ring-rose-200');
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+            }
+
+            // 面接希望の未回答チェック
+            const interviewEl = document.querySelector('input[name="interview"]:checked');
+            if (!interviewEl) {
+                valMsg.textContent = '医師との面接・指導の受診希望（はい／いいえ）を選択してください。';
+                valMsg.classList.remove('hidden');
+                
+                const target = document.getElementById('interviewContainer');
+                target.classList.add('border-rose-500', 'ring-2', 'ring-rose-200');
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            // ストレスチェックの未回答チェック
+            for (let i = 0; i < stressList.length; i++) {
+                if (!document.querySelector(`input[name="stress_${i}"]:checked`)) {
+                    valMsg.textContent = `「3. 自己診断チェック②（ストレス）」に未回答の項目があります。`;
+                    valMsg.classList.remove('hidden');
+                    
+                    const target = document.getElementById(`group_stress_${i}`);
+                    target.classList.add('border-rose-500', 'bg-rose-50', 'ring-2', 'ring-rose-200');
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+            }
+
+            // 健康状態の未回答チェック
+            for (let i = 0; i < healthList.length; i++) {
+                if (!document.querySelector(`input[name="health_${i}"]:checked`)) {
+                    valMsg.textContent = `「最近の健康状態」に未回答の項目があります。`;
+                    valMsg.classList.remove('hidden');
+                    
+                    const target = document.getElementById(`group_health_${i}`);
+                    target.classList.add('border-rose-500', 'bg-rose-50', 'ring-2', 'ring-rose-200');
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
             }
 
             valMsg.classList.add('hidden');
@@ -349,7 +412,7 @@
             submitBtn.disabled = true;
             submitBtn.textContent = '送信中...';
 
-            const interview = document.querySelector('input[name="interview"]:checked').value;
+            const interview = interviewEl.value;
 
             let fatigueTotalScore = 0;
             for (let i = 0; i < fatigueList.length; i++) {
@@ -398,7 +461,7 @@
             .then(res => res.json())
             .then(res => {
                 submitBtn.disabled = false;
-                submitBtn.textContent = '診断結果を送信・保存する';
+                submitBtn.textContent = '回答を送信する';
 
                 document.getElementById('surveyForm').style.display = 'none';
                 const resultBox = document.getElementById('resultBox');
@@ -471,11 +534,10 @@
                 resultBox.scrollIntoView({ behavior: 'smooth' });
             })
             .catch(err => {
-                // カスタムダイアログ表示
                 valMsg.textContent = '送信に失敗しました。ネットワーク状況を確認してください。';
                 valMsg.classList.remove('hidden');
                 submitBtn.disabled = false;
-                submitBtn.textContent = '診断結果を送信・保存する';
+                submitBtn.textContent = '回答を送信する';
             });
         }
 
@@ -484,12 +546,11 @@
                 document.getElementById('userView').classList.remove('hidden');
                 document.getElementById('adminView').classList.add('hidden');
                 
-                // フォーム内の内容をリセット
                 const form = document.getElementById('surveyForm');
                 form.reset();
+                clearErrors();
                 document.getElementById('validationMessage').classList.add('hidden');
                 
-                // フォームの外にある入力欄（実施日・所属・氏名・性別）も初期値に戻す
                 const now = new Date();
                 const jstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
                 document.getElementById('date').value = jstDate.toISOString().split('T')[0];
@@ -502,6 +563,7 @@
             } else {
                 document.getElementById('userView').classList.add('hidden');
                 document.getElementById('adminView').classList.remove('hidden');
+                loadAdminTypeTable(); // loadAdminTable
                 loadAdminTable();
             }
         }
