@@ -109,8 +109,9 @@
             </form>
 
             <div id="resultBox" class="hidden mt-8 p-6 bg-emerald-50 border border-emerald-200 rounded-xl">
-                <h3 class="text-lg font-bold text-emerald-800 mb-2">診断結果　ご回答頂きありがとうございました。</h3>
-                <div id="resultContent" class="text-sm space-y-4 text-slate-700">
+                <h3 class="text-lg font-bold text-emerald-800 mb-2">診断結果 ご回答頂きありがとうございました。</h3>
+                <div id="resultContent" class="text-sm space-y-4 text-slate-700"></div>
+            </div>
         </div>
 
         <!-- ================= 管理者用画面 ================= -->
@@ -252,8 +253,7 @@
                         if (idx === 3) assignVal = 0; 
                     }
 
-                    const showScore = (prefix === 'stress' || prefix === 'health') ? '' : ` (${assignVal})`;
-                    optsHtml += `<label class="cursor-pointer flex items-center gap-1.5"><input type="radio" name="${prefix}_${i}" value="${assignVal}" data-label="${opt.label}"> ${opt.label}${showScore}</label>`;
+                    optsHtml += `<label class="cursor-pointer flex items-center gap-1.5"><input type="radio" name="${prefix}_${i}" value="${assignVal}" data-label="${opt.label}"> ${opt.label}</label>`;
                 });
                 container.innerHTML += `
                     <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg transition-all" id="group_${prefix}_${i}">
@@ -269,7 +269,7 @@
             workList.forEach((item, i) => {
                 let optsHtml = '';
                 item.opts.forEach((opt) => {
-                    optsHtml += `<label class="cursor-pointer flex items-center gap-1.5"><input type="radio" name="work_${i}" value="${opt[1]}"> ${opt[0]} (${opt[1]})</label>`;
+                    optsHtml += `<label class="cursor-pointer flex items-center gap-1.5"><input type="radio" name="work_${i}" value="${opt[1]}"> ${opt[0]}</label>`;
                 });
                 container.innerHTML += `
                     <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg transition-all" id="group_work_${i}">
@@ -563,7 +563,6 @@
             } else {
                 document.getElementById('userView').classList.add('hidden');
                 document.getElementById('adminView').classList.remove('hidden');
-                loadAdminTypeTable(); // loadAdminTable
                 loadAdminTable();
             }
         }
